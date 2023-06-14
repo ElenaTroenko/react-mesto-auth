@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { LoadingContext } from "../contexts/LoadingContext";
 
 
-const Register = (props) => {
+const Register = ({onRegister}) => {
 
   // подписка на контекст LoadingContext
   const isLoading = React.useContext(LoadingContext);
@@ -30,7 +30,7 @@ const Register = (props) => {
   const handleSubmit = (e) => {
     e.preventDefault();  // не перегружать страницу
     
-    props.onRegister(formValue);
+    onRegister(formValue);
   }
 
     return (

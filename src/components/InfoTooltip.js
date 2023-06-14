@@ -1,26 +1,19 @@
 import React from 'react';
-import PopupWithForm from './PopupWithForm';
 import '../components/style/InfoToolTip.css';
 
 
-
-
-const InfoTooltip = (props) => {
+const InfoTooltip = ({isOpen, onClose, img, msg}) => {
 
   return (
-    
-    <PopupWithForm
-      name="infoTooltip"
-      containerClassList="popup__container"
-      isOpen={props.isOpen}
-      onClose={props.onClose}
-    >
-
-      <img className="image-error" src={props.img} />
-      <h2 className="info-message"><font color='black'>{props.msg}</font></h2>
-
-    </PopupWithForm>
+    <section className={`popup popup_info ${isOpen ? 'popup_opened' : ''}`}>
+      <div className='popup__container'>
+        <button onClick={onClose ? onClose : undefined} className="popup__btn-close" type="button" aria-label="Закрыть"></button>
+        <img className="image-error" src={img} alt='Иконка сообщения' />
+        <h2 className="info-message">{msg}</h2>
+      </div>
+    </section>
   )
+
 }
 
 export default InfoTooltip;

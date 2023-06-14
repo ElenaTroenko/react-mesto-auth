@@ -2,7 +2,7 @@ import React from 'react';
 import '../components/style/Login.css';
 import { LoadingContext } from "../contexts/LoadingContext";
 
-const Login = (props) => {
+const Login = ({onLogin}) => {
 
   // подписка на контекст LoadingContext
   const isLoading = React.useContext(LoadingContext);
@@ -29,7 +29,7 @@ const Login = (props) => {
   const handleSubmit = (e) => {
     e.preventDefault();  // не перегружать страницу
     
-    props.onLogin(formValue);
+    onLogin(formValue);
   }
 
   return (

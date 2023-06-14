@@ -3,7 +3,7 @@ import PopupWithForm from "./PopupWithForm";
 import { LoadingContext } from "../contexts/LoadingContext";
 
 
-export default function AddPlacePopup(props) {
+export default function AddPlacePopup({isOpen, onAddPlace, onClose}) {
 
   // подписка на контекст LoadingContext
   const isLoading = React.useContext(LoadingContext);
@@ -17,14 +17,14 @@ export default function AddPlacePopup(props) {
   React.useEffect(() => {
     setPlaceName('');
     setPlaceLink('');
-  }, [props.isOpen]);
+  }, [isOpen]);
 
   // Хэндлер сабмита формы
   function handleSubmit(e) {
     e.preventDefault();  // не перегружать страницу
 
     const placeData = {name: placeName, link: placeLink}
-    props.onAddPlace(placeData);
+    onAddPlace(placeData);
   }
 
   return (
@@ -33,8 +33,8 @@ export default function AddPlacePopup(props) {
       name="new_place"
       title="Новое место"
       containerClassList="popup__container"
-      isOpen={props.isOpen}
-      onClose={props.onClose}
+      isOpen={isOpen}
+      onClose={onClose}
       buttonText={isLoading ? 'Создание...' : 'Создать'}
       onSubmit={handleSubmit}
     >

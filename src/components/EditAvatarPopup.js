@@ -2,7 +2,7 @@ import React from "react";
 import PopupWithForm from "./PopupWithForm";
 import { LoadingContext } from "../contexts/LoadingContext";
 
-export default function EditAvatarPopup(props) {
+export default function EditAvatarPopup({onUpdateAvatar, isOpen, onClose}) {
 
   // подписка на контекст LoadingContext
   const isLoading = React.useContext(LoadingContext);
@@ -14,9 +14,9 @@ export default function EditAvatarPopup(props) {
   function handleSubmit(e) {
     e.preventDefault();  // не перегружать страницу
     
-    props.onUpdateAvatar({
+    onUpdateAvatar({
       avatar: avatarRef.current.value
-    });
+    }, avatarRef);
   }
 
   return (
@@ -25,8 +25,11 @@ export default function EditAvatarPopup(props) {
       name="update_avatar"
       title="Обновить аватар"
       containerClassList="popup__container popup__container_type_avatar"
-      isOpen={props.isOpen}
-      onClose={props.onClose}
+      isOpen={isOpen}
+      onClose={() => {
+        avatarRef.current.value='';
+        onClose();
+      }}
       buttonText={isLoading ? 'Сохранение...' : 'Сохранить'}
       onSubmit={handleSubmit}
     >

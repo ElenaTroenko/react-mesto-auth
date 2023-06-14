@@ -11,7 +11,7 @@ import EditAvatarPopup from './EditAvatarPopup';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './Login';
 import Register from './Register';
-import { register, login, checkToken } from './Auth';
+import { register, login, checkToken } from '../utils/auth';
 import InfoTooltip from './InfoTooltip';
 import { useNavigate } from 'react-router-dom';
 import errorImage from '../images/icons/msgError.svg';
@@ -24,7 +24,6 @@ import AddPlacePopup from './AddPlacePopup';
 
 
 function App() {
-
   // переменные состояния
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);  // булево "попап открыт" (редакт. проф.)
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);        // булево "попап открыт" (добавить новое место)
@@ -42,7 +41,6 @@ function App() {
 
   // хук useNavigate
   const navigate = useNavigate();
-
 
   // жизненный цикл
   React.useEffect(() => {
@@ -64,19 +62,31 @@ function App() {
     const token = getUserToken();
     if (token) {
       checkToken(token)
-      .then((res) => res.json())
       .then((res) => {
-        if (res.data.email) {
+        if (res.data && res.data.email) {
           setEmail(res.data.email);
-  
           setLoggedIn(true);
           navigate('/');
         }
+      })
+      .catch((err) => {
+        handleError(err);
       });
     }
-
   }, []);
 
+  // Устанавливает email (стэйт), запрашивая данные на сервере
+  const setUserEmailbyToken = (token) => {
+    checkToken(token)
+    .then((res) => {
+      if (res.data && res.data.email) {
+        setEmail(res.data.email);
+      }
+    })
+    .catch((err) => {
+      handleError(err);
+    })
+  }
 
   // хэндлер выхода пользователя из системы
   const handleUserExit = () => {
@@ -86,45 +96,43 @@ function App() {
     navigate('/signin');
   }
 
-
   // получить токен. Возвращает токен из localStorage
   const getUserToken = () => {
     return localStorage.getItem('userToken');
   }
-
 
   // Сохранить токен. Сохраняет токен в localStorage
   const saveUserToken = (token) => {
     localStorage.setItem('userToken', token);
   }
     
-
   // Хэндлер логина
   const handleLogin = (data) => {
     setIsLoading(true);
 
     login(data)
-    .then((res) => res.json())
     .then((data) => {
       if (data.token) {
         saveUserToken(data.token);
+        setUserEmailbyToken(data.token);
         setLoggedIn(true);
         navigate('/');
-      } else {
+      } 
+    })
+    .catch((err) => {
+      err.then((res)=>{
         showToolTip({
-          message: "Не получается войти. Проверьте email и пароль.",
+          message: res.error ? res.error : (res.message ? res.message : 'Что-то пошло не так! Попробуйте еще раз.'),
           image: errorImage,
           redirectTo: '',
         });
-      }
+      })
     })
-    .catch((err) => handleError(err))
     .finally(() => {
       setIsLoading(false)
     });
   }
 
-  
   // Хэндлер закрытия попапа infoToolTip
   const handleInfoToolTipClose = () => {
     closeAllPopups();
@@ -139,34 +147,33 @@ function App() {
     }
   }
 
-
   // Хэндлер регистрации
   const handleRegister = (data) => {
     setIsLoading(true);
 
     register(data)
-    .then((res) => res.json())
     .then((data) => {
-      if (data.data._id ) {
+      if (data.data && data.data._id) {
         showToolTip({
           message: 'Вы успешно зарегистрировались!',
           image: okImage,
           redirectTo: '/signin',
         });
-      } else {
+      }
+    })
+    .catch((err) => {
+      err.then((res)=>{
         showToolTip({
-          message: 'Что-то пошло не так! Попробуйте еще раз.',
+          message: res.error ? res.error : (res.message ? res.message : 'Что-то пошло не так! Попробуйте еще раз.'),
           image: errorImage,
           redirectTo: '',
         });
-      }
+      })
     })
-    .catch((err) => handleError(err))
     .finally(() => {
       setIsLoading(false)
     });
   }
-
 
   // Показать попап infoToolTip
   const showToolTip = ({message, image, redirectTo}) => {
@@ -176,7 +183,6 @@ function App() {
 
     setIsInfoToolTipOpen(true);
   }
-
 
   // хэндлер лайка карточки
   function handleCardLike(card) {
@@ -242,12 +248,13 @@ function App() {
   }
 
   // хэндлер обновления аватара пользователя
-  function handleUpdateAvatar(data) {
+  function handleUpdateAvatar(data, ref) {
     setIsLoading(true);
 
     api.setUserAvatar(data.avatar)
     .then((newData) => {
       setCurrentUser(newData);
+      ref.current.value='';
       closeAllPopups();
     })
     .catch((err) => {
@@ -315,31 +322,6 @@ function App() {
                   cards={cards}
                 />
                 <Footer />
-                <EditProfilePopup
-                  isOpen={isEditProfilePopupOpen} 
-                  onClose={closeAllPopups}
-                  onUpdateUser={handleUpdateUser}
-                />
-                <AddPlacePopup
-                  isOpen={isAddPlacePopupOpen} 
-                  onClose={closeAllPopups}
-                  onAddPlace={handleAddPlaceSubmit}
-                />
-                <PopupWithForm
-                  name="class_confirmation"
-                  title="Вы уверены?"
-                  containerClassList="popup__container popup__container_type_confirmation"
-                  isOpen={false}
-                  onClose={closeAllPopups}
-                  buttonText='Да'
-                >
-                </PopupWithForm>
-                <EditAvatarPopup
-                  isOpen={isEditAvatarPopupOpen}
-                  onClose={closeAllPopups}
-                  onUpdateAvatar={handleUpdateAvatar}
-                />
-                <ImagePopup card={selectedCard} onClose={closeAllPopups}/>
               </>
             } loggedIn={loggedIn} />} />
             <Route path="/signup" element={
@@ -352,12 +334,6 @@ function App() {
                 />
                 <Register 
                   onRegister={handleRegister}
-                />
-                <InfoTooltip
-                  isOpen={isInfoToolTipOpen} 
-                  onClose={handleInfoToolTipClose}
-                  msg={toolTipMessage}
-                  img={toolTipImage}
                 />
               </> 
             } />
@@ -372,17 +348,51 @@ function App() {
                   <Login
                     onLogin={handleLogin}
                   />
-                  <InfoTooltip 
-                    isOpen={isInfoToolTipOpen} 
-                    onClose={handleInfoToolTipClose}
-                    msg={toolTipMessage}
-                    img={toolTipImage}
-                  />
                 </>
             } />
             <Route path="*" element={<Navigate to="/" />}/>
           </Routes>
+
+          <EditProfilePopup
+            isOpen={isEditProfilePopupOpen} 
+            onClose={closeAllPopups}
+            onUpdateUser={handleUpdateUser}
+          />
+          
+          <AddPlacePopup
+            isOpen={isAddPlacePopupOpen} 
+            onClose={closeAllPopups}
+            onAddPlace={handleAddPlaceSubmit}
+          />
+
+          <PopupWithForm
+            name="class_confirmation"
+            title="Вы уверены?"
+            containerClassList="popup__container popup__container_type_confirmation"
+            isOpen={false}
+            onClose={closeAllPopups}
+            buttonText='Да'
+          >
+          
+          </PopupWithForm>
+
+          <EditAvatarPopup
+            isOpen={isEditAvatarPopupOpen}
+            onClose={closeAllPopups}
+            onUpdateAvatar={handleUpdateAvatar}
+          />
+
+          <ImagePopup card={selectedCard} onClose={closeAllPopups}/>
+
+          <InfoTooltip 
+            isOpen={isInfoToolTipOpen} 
+            onClose={handleInfoToolTipClose}
+            msg={toolTipMessage}
+            img={toolTipImage}
+          />
+
         </div>
+
       </LoadingContext.Provider>
     </UserContext.Provider>
   );

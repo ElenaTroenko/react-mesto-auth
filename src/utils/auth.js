@@ -6,7 +6,15 @@ const headers = {
 }
 
 
-// Запрос на сервер: РЕГИСТРАЦИЯ. Возвращает промис
+const getResponseData = (res) => {
+  if (res.ok) {
+    return res.json();
+  }
+  return Promise.reject(res.json())
+}
+
+
+// Запрос на сервер: РЕГИСТРАЦИЯ
 export const register = ({password, email}) => {
   return fetch(`${BASE_URL}/signup`, {
     method: 'POST',
@@ -16,10 +24,11 @@ export const register = ({password, email}) => {
       email: email,  
     }),
   })
+  .then((res) => getResponseData(res))
 }
 
 
-// Запрос на сервер: АВТОРИЗАЦИЯ. Возвращает промис
+// Запрос на сервер: АВТОРИЗАЦИЯ
 export const login = ({password, email}) => {
   return fetch(`${BASE_URL}/signin`, {
     method: 'POST',
@@ -29,10 +38,11 @@ export const login = ({password, email}) => {
       email: email,  
     }),
   })
+  .then((res) => getResponseData(res))
 }
 
 
-// Запрос на сервер: ПРОВЕРКА ТОКЕНА. Возвращает промис
+// Запрос на сервер: ПРОВЕРКА ТОКЕНА
 export const checkToken = (token) => {
   // добавить к заголовкам Bearer токен
   headers["authorization"] = `Bearer ${token}`;
@@ -41,4 +51,5 @@ export const checkToken = (token) => {
     method: 'GET',
     headers: headers,
   })
+  .then((res) => getResponseData(res))
 }

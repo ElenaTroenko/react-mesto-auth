@@ -4,7 +4,7 @@ import { UserContext } from "../contexts/CurrentUserContext";
 import { LoadingContext } from "../contexts/LoadingContext";
 
 
-export default function EditProfilePopup(props) {
+export default function EditProfilePopup({isOpen, onUpdateUser, onClose}) {
 
   // подписка на контекст UserContext
   const currentUser = React.useContext(UserContext);
@@ -19,13 +19,13 @@ export default function EditProfilePopup(props) {
   React.useEffect(() => {
     currentUser.name && setName(currentUser.name);
     currentUser.about && setDescription(currentUser.about);
-  }, [currentUser, props.isOpen]);
+  }, [currentUser, isOpen]);
 
   // Хэндлер сабмита формы
   function handleSubmit(e) {
     e.preventDefault();  // не перегружать страницу
     
-    props.onUpdateUser({
+    onUpdateUser({
       name,
       about: description,
     });
@@ -37,8 +37,8 @@ return (
       name="edit_profile"
       title="Редактировать профиль"
       containerClassList="popup__container"
-      isOpen={props.isOpen}
-      onClose={props.onClose}
+      isOpen={isOpen}
+      onClose={onClose}
       buttonText={isLoading ? 'Сохранение...' : 'Сохранить'}
       onSubmit={handleSubmit}
     >
